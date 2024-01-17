@@ -1,0 +1,42 @@
+services:
+  
+  kubenews:
+    image: supervalter/kube-news:v1
+    ports:
+      - 8080:8080
+    environment:
+      DB_DATABASE: kubenews
+      DB_USERNAME: kubenews
+      DB_PASSWORD: pg1234
+      DB_HOST: postgre
+      WAIT_HOSTS: postgres:5432
+    depends_on:
+      postgre:
+        condition: service_healthy
+    links:
+      - postgre
+    volumes:
+      - .:/app_directory
+
+  postgre:
+    image: postgres:13.13
+    ports:
+     - 5432:5432
+    environment:
+      POSTGRES_PASSWORD: pg1234
+      POSTGRES_USER: kubenews
+      POSTGRES_DB: kubenews
+    volumes:
+      - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  database:
+  
+networks:
+  kubenews_net:
+    driver: bridge
